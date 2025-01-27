@@ -1,4 +1,4 @@
-#include <mpi.h>
+#include <omp.h>
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
