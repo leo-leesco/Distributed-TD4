@@ -10,7 +10,6 @@
 int main(int argc, char **argv) {
   int N;
   int seed;
-  int i;
   int m = 0;
   double pi;
   double time_start, time_stop, duration;
@@ -41,11 +40,11 @@ int main(int argc, char **argv) {
   time_start = omp_get_wtime();
 
   double x, xtemp, y, ytemp;
-#pragma omp parallel for
-  for (i = 0; i * omp_get_num_threads() < N; i++) {
+#pragma omp parallel for reduction(+:m) private(x,y,xtemp,ytemp)
+  for (int i = 0; i * omp_get_num_threads() < N; i++) {
 
-    drand48_r(randBuff, &xtemp);
-    drand48_r(randBuff, &ytemp);
+    drand48_r(&randBuff, &xtemp);
+    drand48_r(&randBuff, &ytemp);
     x = 1 - (2 * xtemp);
     y = 1 - (2 * ytemp);
 
@@ -54,10 +53,7 @@ int main(int argc, char **argv) {
       printf("x=%lf, y=%f is IN\n", x, y);
 #endif
 
-#pragma omp atomic
-      {
         m++;
-      }
 
     } else {
 #if DEBUG
