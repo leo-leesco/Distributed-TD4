@@ -32,10 +32,6 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  /* Initialize the pseudo-random number generator */
-  struct drand48_data randBuff;
-  srand48_r(seed, &randBuff);
-
   printf("Running w/ N=%d, seed=%d\n", N, seed);
 
   /* Star timer */
@@ -45,7 +41,8 @@ int main(int argc, char **argv) {
 #pragma omp parallel reduction(+ : m)
   {
     struct drand48_data randBuff;
-    srand48_r(seed, &randBuff); // Initialize with the same seed
+    srand48_r(seed + omp_get_thread_num(),
+              &randBuff); // Initialize with the same seed
 
 #pragma omp for private(xtemp, ytemp, x, y)
     for (int i = 0; i < N; i++) {
