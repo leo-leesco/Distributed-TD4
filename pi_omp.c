@@ -42,25 +42,34 @@ int main(int argc, char **argv) {
   time_start = omp_get_wtime();
 
   double x, xtemp, y, ytemp;
-#pragma omp parallel for reduction(+ : m) private(i, x, y, xtemp, ytemp)
-  for (i = omp_get_thread_num(); i < N; i += N_threads) {
+#pragma omp parallel reduction(+ : m)
+  {
+    struct drand48_data randBuff;
+    srand48_r(seed, &randBuff); // Initialize with the same seed
 
-    drand48_r(&randBuff, &xtemp);
-    drand48_r(&randBuff, &ytemp);
-    x = 1 - (2 * xtemp);
-    y = 1 - (2 * ytemp);
+#pragma omp for private(xtemp, ytemp, x, y)
+    for (int i = 0; i < N; i++) {
+      drand48_r(&randBuff, &xtemp);
+      drand48_r(&randBuff, &ytemp);
+      x = 1 - (2 * xtemp);
+      y = 1 - (2 * ytemp);
 
-    if ((x * x + y * y) < 1) {
+      if ((x * x + y * y) < 1) {
 #if DEBUG
-      printf("x=%lf, y=%f is IN\n", x, y);
+#pragma omp critical
+        {
+          printf("x=%lf, y=%f is IN\n", x, y);
+        }
 #endif
-
-      m++;
-
-    } else {
+        m++;
+      } else {
 #if DEBUG
-      printf("x=%lf, y=%f is OUT\n", x, y);
+#pragma omp critical
+        {
+          printf("x=%lf, y=%f is OUT\n", x, y);
+        }
 #endif
+      }
     }
   }
 
