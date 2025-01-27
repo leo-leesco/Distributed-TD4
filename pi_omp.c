@@ -10,10 +10,12 @@
 int main(int argc, char **argv) {
   int N;
   int seed;
+  int i;
   int m = 0;
   double pi;
   double time_start, time_stop, duration;
 
+  int N_threads = omp_get_num_threads();
   /* Check the number of command-line arguments */
   if (argc != 3) {
     fprintf(stderr, "Usage: %s N seed\n", argv[0]);
@@ -40,8 +42,8 @@ int main(int argc, char **argv) {
   time_start = omp_get_wtime();
 
   double x, xtemp, y, ytemp;
-#pragma omp parallel for reduction(+:m) private(x,y,xtemp,ytemp)
-  for (int i = 0; i * omp_get_num_threads() < N; i++) {
+#pragma omp parallel for reduction(+ : m) private(i, x, y, xtemp, ytemp)
+  for (i = omp_get_thread_num(); i < N; i += N_threads) {
 
     drand48_r(&randBuff, &xtemp);
     drand48_r(&randBuff, &ytemp);
@@ -53,7 +55,7 @@ int main(int argc, char **argv) {
       printf("x=%lf, y=%f is IN\n", x, y);
 #endif
 
-        m++;
+      m++;
 
     } else {
 #if DEBUG
